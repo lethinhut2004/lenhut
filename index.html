@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>Báo Tường Lê Nhựt</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f4f4f4;
+    }
+    header {
+        background: linear-gradient(45deg, #ff4d4d, #ff9900);
+        color: white;
+        text-align: center;
+        padding: 40px 20px;
+        font-size: 32px;
+        font-weight: bold;
+    }
+    .container {
+        max-width: 900px;
+        margin: 20px auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    textarea {
+        width: 100%;
+        height: 200px;
+        padding: 10px;
+        font-size: 16px;
+    }
+    button {
+        margin: 10px 5px;
+        padding: 12px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    button:hover {
+        background: #0056b3;
+    }
+    #preview {
+        white-space: pre-wrap;
+        padding: 20px;
+        margin-top: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background: #fafafa;
+    }
+    img {
+        max-width: 100%;
+        margin-top: 10px;
+    }
+</style>
+</head>
+<body>
+
+<header>BÁO TƯỜNG LÊ NHỰT</header>
+
+<div class="container">
+    <h2>Nội dung bài viết</h2>
+    <textarea id="content" placeholder="Nhập nội dung báo tường..."></textarea>
+
+    <h3>Ảnh minh họa</h3>
+    <input type="file" id="imageUpload" accept="image/*">
+
+    <br/>
+
+    <button onclick="updatePreview()">Xem trước</button>
+    <button onclick="exportWord()">Xuất Word</button>
+    <button onclick="exportPDF()">Xuất PDF</button>
+
+    <div id="preview"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<script>
+let imageBase64 = "";
+
+document.getElementById("imageUpload").addEventListener("change", function(event){
+    const reader = new FileReader();
+    reader.onload = function(){
+        imageBase64 = reader.result;
+    }
+    reader.readAsDataURL(event.target.files[0]);
+});
+
+function updatePreview(){
+    const text = document.getElementById("content").value;
+    let html = `<p>${text.replace(/\n/g,'<br>')}</p>`;
+    
+    if(imageBase64){
+        html += `<img src="${imageBase64}"/>`;
+    }
+    document.getElementById("preview").innerHTML = html;
+}
+
+function exportWord() {
+    let header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+                 "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+                 "xmlns='http://www.w3.org/TR/REC-html40'>";
+    let body = document.getElementById("preview").innerHTML;
+    let source = header + "<body>" + body + "</body></html>";
+
+    let blob = new Blob(['\ufeff', source], {type: 'application/msword'});
+    let url = URL.createObjectURL(blob);
+    let link = document.createElement("a");
+    link.href = url;
+    link.download = "bao-tuong.doc";
+    link.click();
+}
+
+async function exportPDF(){
+    const element = document.getElementById("preview");
+    const canvas = await html2canvas(element);
+    const imgData = canvas.toDataURL("image/png");
+    
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("p", "mm", "a4");
+    const width = 190;
+    const height = canvas.height * width / canvas.width;
+
+    pdf.addImage(imgData, "PNG", 10, 10, width, height);
+    pdf.save("bao-tuong.pdf");
+}
+</script>
+
+</body>
+</html>
